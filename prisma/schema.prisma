@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectStatus {
+  EXTRACTING
+  TRANSCRIBING
+  TRANSLATING
+  READY
+  FAILED
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  name           String
+  originalName   String
+  filePath       String
+  mimeType       String
+  sizeBytes      Int
+  durationSec    Float?
+  status         ProjectStatus @default(EXTRACTING)
+  progress       Int           @default(0)
+  stageDetail    String?
+  error          String?
+  sourceLang     String        @default("auto")
+  synopsis       String?
+  dubStatus      String?
+  dubProgress    Int           @default(0)
+  dubError       String?
+  dubAudioPath   String?
+  dubVideoPath   String?
+  dubHardsubPath String?
+  dubVoice       String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  segments       Segment[]
+
+  @@index([createdAt])
+}
+
+model Segment {
+  id         String  @id @default(cuid())
+  projectId  String
+  idx        Int
+  startMs    Int
+  endMs      Int
+  sourceText String
+  khmerText  String?
+  Project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, idx])
+}
